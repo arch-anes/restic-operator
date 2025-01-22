@@ -1,0 +1,18 @@
+{
+	"name": "restic operator devcontainer",
+	"dockerComposeFile": "./docker-compose.yml",
+	"service": "devcontainer",
+	"workspaceFolder": "/workspace",
+	"remoteUser": "vscode",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"redhat.vscode-yaml",
+				"visualstudioexptteam.vscodeintellicode",
+				"ms-azuretools.vscode-docker",
+				"ms-kubernetes-tools.vscode-kubernetes-tools",
+				"golang.Go"
+			]
+		}
+	}
+}
