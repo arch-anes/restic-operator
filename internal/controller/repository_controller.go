@@ -20,11 +20,14 @@ import (
 	"context"
 
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	backupv1 "arch-anes/restic-operator/api/v1"
+
+	corev1 "k8s.io/api/core/v1"
 )
 
 // RepositoryReconciler reconciles a Repository object
@@ -47,9 +50,29 @@ type RepositoryReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.20.0/pkg/reconcile
 func (r *RepositoryReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
+	log := log.FromContext(ctx)
 
-	// TODO(user): your logic here
+	// Fetch the Repository instance
+	var repository backupv1.Repository
+	if err := r.Get(ctx, req.NamespacedName, &repository); err != nil {
+		log.Error(err, "unable to fetch Repository")
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	// Fetch the referenced Secret
+	secretName := repository.Spec.SecretRef.Name
+	var secret corev1.Secret
+	if err := r.Get(ctx, types.NamespacedName{Name: secretName, Namespace: req.Namespace}, &secret); err != nil {
+		log.Error(err, "unable to fetch Secret", "secret", secretName)
+		return ctrl.Result{}, err
+	}
+
+	// Use the Secret data
+	accessKey := string(secret.Data["accessKey"])
+	secretKey := string(secret.Data["secretKey"])
+	log.Info("Retrieved credentials", "accessKey", accessKey, "secretKey", secretKey)
+
+	// TODO: extra reconciliation logic here...
 
 	return ctrl.Result{}, nil
 }
